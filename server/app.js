@@ -1,6 +1,8 @@
 const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
+
 const PORT = 5005;
 
 // STATIC DATA
@@ -13,6 +15,7 @@ const students = require("./students.json");
 
 // INITIALIZE EXPRESS APP - https://expressjs.com/en/4x/api.html#express
 const app = express();
+app.use(cors());
 
 
 // MIDDLEWARE
@@ -23,6 +26,7 @@ app.use(morgan("dev"));
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
 
 
 // ROUTES - https://expressjs.com/en/starter/basic-routing.html
