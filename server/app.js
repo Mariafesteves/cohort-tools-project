@@ -6,11 +6,11 @@ const cors = require("cors");
 const PORT = 5005;
 
 const mongoose = require("mongoose");
- 
+
 mongoose
-.connect("mongodb://127.0.0.1:27017/cohort-tools-api") // Corrigido o endereço e a porta
-.then(x => console.log(`Connected to Database: "${x.connections[0].name}"`))
-.catch(err => console.error("Error connecting to MongoDB", err));
+  .connect("mongodb://127.0.0.1:27017/cohort-tools-api") // Corrigido o endereço e a porta
+  .then(x => console.log(`Connected to Database: "${x.connections[0].name}"`))
+  .catch(err => console.error("Error connecting to MongoDB", err));
 
 // STATIC DATA
 // Devs Team - Import the provided files with JSON data of students and cohorts here:
@@ -43,16 +43,157 @@ app.get("/docs", (req, res) => {
   res.sendFile(__dirname + "/views/docs.html");
 });
 
-app.get("/api/cohorts", function (req, res, next){
-  
-  res.send("hello")
-  
+
+app.post('/api/students', (req, res, next) => {
+  const newStudent = {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email: req.body.email,
+    phone: req.body.phone,
+    linkedinUrl: req.body.linkedinUrl,
+    languages: req.body.languages,
+    program: req.body.program,
+    background: req.body.background,
+    image: req.body.image,
+    cohort: req.body.cohort,
+    projects: req.body.projects,
+  }
+
+  Student.create(newStudent)
+    .then((studentFromDB) => {
+      res.status(201).json(studentFromDB)
+    })
+    .catch((error) => {
+      console.log("Error while crreating new student", error)
+      res.status(500).json({ message: "Server Error" })
+    })
 })
 
-app.get("/api/students", function (req, res, next){
-  res.json(Student);
+app.post("/api/cohorts", function (req, res, next) {
+  const newCohort = req.body
+  Cohort.create(newCohort)
+    .then((cohortNew) => {
+      res.status(201).json(cohortNew)
+    })
+    .catch((error) => {
+      res.status(500).json({ error: "Error creating cohort" })
+    })
 })
 
+app.get('/api/students', (req, res, next) => {
+
+  Student.find()
+    .populate("cohort")
+    .then((studentFromDB) => {
+      res.status(200).json(studentFromDB)
+    })
+    .catch((error) => {
+      console.log("Error while crreating new student", error)
+      res.status(500).json({ message: "Server Error" })
+    })
+})
+
+app.get("/api/cohorts", function (req, res, next) {
+  Cohort.find()
+    .then((cohorts) => {
+      res.status(200).json(cohorts)
+    })
+    .catch((error) => {
+      res.status(500).json({ error: "Error getting cohorts" })
+    })
+})
+
+app.get('/api/students/cohort/:cohortId', (req, res, next) => {
+  const { cohortId } = req.params
+
+  Student.find({cohort: cohortId})
+    .populate("cohort")
+    .then((studentFromDB) => {
+      res.status(200).json(studentFromDB)
+    })
+    .catch((error) => {
+      console.log("Error while crreating new student", error)
+      res.status(500).json({ message: "Server Error" })
+    })
+})
+
+
+app.get("/api/cohorts/:cohortId", function (req, res, next) {
+  const { cohortId } = req.params
+  Cohort.findById(cohortId)
+    .then((cohort) => {
+      res.status(200).json(cohort)
+    })
+    .catch((error) => {
+      res.status(500).json({ error: "Error getting cohort" })
+    })
+})
+
+app.get('/api/students/:studentId', (req, res, next) => {
+  const { studentId } = req.params
+
+  Student.findById(studentId)
+    .populate("cohort")
+    .then((studentFromDB) => {
+      res.status(200).json(studentFromDB)
+    })
+
+    .catch((error) => {
+      res.status(500).json({ error: "Error getting cohort" })
+    })
+})
+
+app.put("/api/cohorts/:cohortId", function (req, res, next) {
+  const { cohortId } = req.params
+
+  const newDetails = req.body
+
+  Cohort.findByIdAndUpdate(cohortId, newDetails, { new: true })
+    .then((cohortUpdated) => {
+      res.status(200).json(cohortUpdated)
+    })
+    .catch((error) => {
+      res.status(500).json({ error: "Error updating cohort" })
+    })
+})
+
+app.put('/api/students/:studentId', (req, res, next) => {
+  const { studentId } = req.params
+
+  const newDetails = req.body
+
+  Student.findByIdAndUpdate(studentId, newDetails, { new: true })
+    .then((studentFromDB) => {
+      res.status(200).json(studentFromDB)
+    })
+    .catch((error) => {
+      res.status(500).json({ error: "Error updating cohort" })
+    })
+})
+
+app.delete("/api/cohorts/:cohortId", function (req, res, next) {
+  const { cohortId } = req.params
+  Cohort.findByIdAndDelete(cohortId)
+    .then(response => {
+      res.status(204).json(response)
+    })
+    .catch((error) => {
+      res.status(500).json({ error: "Error deleting cohort" })
+    })
+})
+
+app.delete('/api/students/:studentId', (req, res, next) => {
+  const { studentId } = req.params
+
+  Student.findByIdAndDelete(studentId)
+    .then((studentFromDB) => {
+      res.status(200).json(studentFromDB)
+    })
+
+    .catch((error) => {
+      res.status(500).json({ error: "Error deleting cohort" })
+    })
+})
 
 // START SERVER
 app.listen(PORT, () => {

@@ -3,7 +3,7 @@ const Cohort = require("./cohortModel");
 
 const Schema = mongoose.Schema;
 
-const studentSchema = new mongoose.Schema({
+const StudentSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: true,
@@ -50,7 +50,7 @@ const studentSchema = new mongoose.Schema({
     },
 
     cohort: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Cohort",
     },
 
@@ -60,6 +60,6 @@ const studentSchema = new mongoose.Schema({
 
 })
 
-const Student = mongoose.model("Student", studentSchema);
+const Student = mongoose.model("Student", StudentSchema);
 
 module.exports = Student;
