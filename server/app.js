@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const { errorHandler, notFoundHandler } = require('./middleware/middleware/error');
 
 const PORT = 5005;
 
@@ -36,6 +37,7 @@ app.use(cookieParser());
 
 
 
+
 // ROUTES - https://expressjs.com/en/starter/basic-routing.html
 // Devs Team - Start working on the routes here:
 // ...
@@ -66,6 +68,7 @@ app.post('/api/students', (req, res, next) => {
     .catch((error) => {
       console.log("Error while crreating new student", error)
       res.status(500).json({ message: "Server Error" })
+      next(error);
     })
 })
 
@@ -77,6 +80,7 @@ app.post("/api/cohorts", function (req, res, next) {
     })
     .catch((error) => {
       res.status(500).json({ error: "Error creating cohort" })
+      next(error);
     })
 })
 
@@ -90,6 +94,7 @@ app.get('/api/students', (req, res, next) => {
     .catch((error) => {
       console.log("Error while crreating new student", error)
       res.status(500).json({ message: "Server Error" })
+      next(error);
     })
 })
 
@@ -100,6 +105,7 @@ app.get("/api/cohorts", function (req, res, next) {
     })
     .catch((error) => {
       res.status(500).json({ error: "Error getting cohorts" })
+      next(error);
     })
 })
 
@@ -113,7 +119,8 @@ app.get('/api/students/cohort/:cohortId', (req, res, next) => {
     })
     .catch((error) => {
       console.log("Error while crreating new student", error)
-      res.status(500).json({ message: "Server Error" })
+      res.status(500).json({ message: "Server Error" });
+      next(error);
     })
 })
 
@@ -126,6 +133,7 @@ app.get("/api/cohorts/:cohortId", function (req, res, next) {
     })
     .catch((error) => {
       res.status(500).json({ error: "Error getting cohort" })
+      next(error);
     })
 })
 
@@ -140,6 +148,7 @@ app.get('/api/students/:studentId', (req, res, next) => {
 
     .catch((error) => {
       res.status(500).json({ error: "Error getting cohort" })
+      next(error);
     })
 })
 
@@ -154,6 +163,7 @@ app.put("/api/cohorts/:cohortId", function (req, res, next) {
     })
     .catch((error) => {
       res.status(500).json({ error: "Error updating cohort" })
+      next(error);
     })
 })
 
@@ -168,6 +178,7 @@ app.put('/api/students/:studentId', (req, res, next) => {
     })
     .catch((error) => {
       res.status(500).json({ error: "Error updating cohort" })
+      next(error);
     })
 })
 
@@ -179,6 +190,7 @@ app.delete("/api/cohorts/:cohortId", function (req, res, next) {
     })
     .catch((error) => {
       res.status(500).json({ error: "Error deleting cohort" })
+      next(error);
     })
 })
 
@@ -187,13 +199,18 @@ app.delete('/api/students/:studentId', (req, res, next) => {
 
   Student.findByIdAndDelete(studentId)
     .then((studentFromDB) => {
-      res.status(200).json(studentFromDB)
+      res.status(204).json(studentFromDB)
     })
 
     .catch((error) => {
-      res.status(500).json({ error: "Error deleting cohort" })
+      res.status(500).json({ error: "Error deleting student" })
+      next(error);
     })
 })
+
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // START SERVER
 app.listen(PORT, () => {
