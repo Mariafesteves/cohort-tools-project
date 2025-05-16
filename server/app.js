@@ -1,8 +1,15 @@
+require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { errorHandler, notFoundHandler } = require('./middleware/middleware/error');
+const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
+const expressjwt = require("express-jwt")
+
+
+const { isAuthenticated } = require("./middleware/middleware/jwt.middleware");
 
 const PORT = 5005;
 
@@ -19,6 +26,7 @@ mongoose
 
 const Cohort = require("./models/cohortModel");
 const Student = require("./models/studentsModel");
+const User = require("./models/userModel");
 
 
 // INITIALIZE EXPRESS APP - https://expressjs.com/en/4x/api.html#express
@@ -44,6 +52,25 @@ app.use(cookieParser());
 app.get("/docs", (req, res) => {
   res.sendFile(__dirname + "/views/docs.html");
 });
+
+app.get('/api/users/:id', isAuthenticated, (req, res, next) => {
+
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  User.findById(id)
+    .then((userId) => {
+      res.json(userId)
+    })
+    .catch((err) => {
+      console.log("Error while updating the project", err);
+      res.status(500).json({ message: "Error while updating the project" });
+    });
+})
 
 
 app.post('/api/students', (req, res, next) => {
@@ -112,7 +139,7 @@ app.get("/api/cohorts", function (req, res, next) {
 app.get('/api/students/cohort/:cohortId', (req, res, next) => {
   const { cohortId } = req.params
 
-  Student.find({cohort: cohortId})
+  Student.find({ cohort: cohortId })
     .populate("cohort")
     .then((studentFromDB) => {
       res.status(200).json(studentFromDB)
@@ -207,6 +234,8 @@ app.delete('/api/students/:studentId', (req, res, next) => {
       next(error);
     })
 })
+
+app.use("/auth", require("./routes/auth.routes"));
 
 
 app.use(notFoundHandler);
